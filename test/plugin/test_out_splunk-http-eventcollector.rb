@@ -28,7 +28,7 @@ class SplunkHTTPEventcollectorOutputTest < Test::Unit::TestCase
 
     d = create_driver
 
-    time = Time.parse("2010-01-02 13:14:15 UTC").to_f
+    time = Time.parse("2010-01-02 13:14:15 UTC").to_i
     d.emit({ "message" => "a message"}, time)
 
     d.run
@@ -52,7 +52,7 @@ class SplunkHTTPEventcollectorOutputTest < Test::Unit::TestCase
       sourcetype ${tag_parts[0]}
     ])
 
-    time = Time.parse("2010-01-02 13:14:15 UTC").to_f
+    time = Time.parse("2010-01-02 13:14:15 UTC").to_i
     d.emit({"message" => "a message", "source" => "source-from-record"}, time)
 
     d.run
@@ -63,6 +63,27 @@ class SplunkHTTPEventcollectorOutputTest < Test::Unit::TestCase
       times: 1
   end
 
+  def test_time_override
+    stub_request(:post, "https://localhost:8089/services/collector").
+      to_return(body: '{"text":"Success","code":0}')
+
+    d = create_driver(CONFIG + %[
+      source ${record["source"]}
+      sourcetype ${tag_parts[0]}
+      time_key timestamp
+    ])
+
+    time = Time.parse("2010-01-02 13:14:15 UTC").to_i
+    d.emit({"message" => "a message", "source" => "source-from-record", "timestamp" => "1497978619.751919"}, time)
+
+    d.run
+
+    assert_requested :post, "https://localhost:8089/services/collector",
+      headers: {"Authorization" => "Splunk changeme"},
+      body: { time: "1497978619.751919", source: "source-from-record", sourcetype: "test", host: "", index: "main", event: "a message" },
+      times: 1
+  end
+
   def test_4XX_error_retry
     stub_request(:post, "https://localhost:8089/services/collector").
       with(headers: {"Authorization" => "Splunk changeme"}).
@@ -70,7 +91,7 @@ class SplunkHTTPEventcollectorOutputTest < Test::Unit::TestCase
 
     d = create_driver
 
-    time = Time.parse("2010-01-02 13:14:15 UTC").to_f
+    time = Time.parse("2010-01-02 13:14:15 UTC").to_i
     d.emit({ "message" => "1" }, time)
     d.run
 
@@ -100,7 +121,7 @@ class SplunkHTTPEventcollectorOutputTest < Test::Unit::TestCase
       post_retry_interval 0.1
     ])
 
-    time = Time.parse("2010-01-02 13:14:15 UTC").to_f
+    time = Time.parse("2010-01-02 13:14:15 UTC").to_i
     d.emit({ "message" => "1" }, time)
     d.run
 
@@ -120,7 +141,7 @@ class SplunkHTTPEventcollectorOutputTest < Test::Unit::TestCase
       batch_size_limit 250
     ])
 
-    time = Time.parse("2010-01-02 13:14:15 UTC").to_f
+    time = Time.parse("2010-01-02 13:14:15 UTC").to_i
     d.emit({"message" => "a" }, time)
     d.emit({"message" => "b" }, time)
     d.emit({"message" => "c" }, time)
@@ -148,7 +169,7 @@ class SplunkHTTPEventcollectorOutputTest < Test::Unit::TestCase
       all_items true
     ])
 
-    time = Time.parse("2010-01-02 13:14:15 UTC").to_f
+    time = Time.parse("2010-01-02 13:14:15 UTC").to_i
     d.emit({ "some" => { "nested" => "ü†f-8".force_encoding("BINARY"), "with" => ['ü', '†', 'f-8'].map {|c| c.force_encoding("BINARY") } } }, time)
     d.run
 
@@ -167,7 +188,7 @@ class SplunkHTTPEventcollectorOutputTest < Test::Unit::TestCase
       all_items true
     ])
 
-    time = Time.parse("2010-01-02 13:14:15 UTC").to_f
+    time = Time.parse("2010-01-02 13:14:15 UTC").to_i
     d.emit({ "some" => { "nested" => "ü†f-8".force_encoding("BINARY"), "with" => ['ü', '†', 'f-8'].map {|c| c.force_encoding("BINARY") } } }, time)
     d.run
 

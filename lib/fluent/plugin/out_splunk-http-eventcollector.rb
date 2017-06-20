@@ -42,6 +42,7 @@ class SplunkHTTPEventcollectorOutput < BufferedOutput
   config_param :token, :string, :default => nil
 
   # Event parameters
+  config_param :time_key, :string, :default => 'time'
   config_param :protocol, :string, :default => 'https'
   config_param :host, :string, :default => nil
   config_param :index, :string, :default => 'main'
@@ -158,7 +159,7 @@ class SplunkHTTPEventcollectorOutput < BufferedOutput
     placeholders = @placeholder_expander.prepare_placeholders(placeholder_values)
 
     splunk_object = Hash[
-        "time" => time.to_f,
+        "time" => if record.has_key?(@time_key) then record[@time_key] else time.to_i end,
         "source" => if @source.nil? then tag.to_s else @placeholder_expander.expand(@source, placeholders) end,
         "sourcetype" => @placeholder_expander.expand(@sourcetype.to_s, placeholders),
         "host" => @placeholder_expander.expand(@host.to_s, placeholders),
