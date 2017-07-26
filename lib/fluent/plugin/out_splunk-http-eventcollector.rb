@@ -169,7 +169,11 @@ class SplunkHTTPEventcollectorOutput < BufferedOutput
     if @all_items
       splunk_object["event"] = convert_to_utf8(record)
     else
-      splunk_object["event"] = convert_to_utf8(record["message"])
+      if record["message"] != ""
+        splunk_object["event"] = convert_to_utf8(record["message"])
+      else
+        log.debug "Suppressing empty message"
+      end
     end
 
     json_event = splunk_object.to_json

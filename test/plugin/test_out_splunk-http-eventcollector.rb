@@ -43,6 +43,27 @@ class SplunkHTTPEventcollectorOutputTest < Test::Unit::TestCase
       times: 1
   end
 
+  def test_empty
+    stub_request(:post, "https://localhost:8089/services/collector").
+      to_return(body: '{"text":"Success","code":0}')
+
+    d = create_driver
+
+    time = Time.parse("2010-01-02 13:14:15 UTC").to_i
+    d.emit({ "message" => ""}, time)
+
+    d.run
+
+    assert_not_requested :post, "https://localhost:8089/services/collector",
+      headers: {
+        "Authorization" => "Splunk changeme",
+        'Content-Type' => 'application/json',
+        'User-Agent' => 'fluent-plugin-splunk-http-eventcollector/0.0.1'
+      },
+      body: { time: time, source:"test", sourcetype: "fluentd", host: "", index: "main", event: "" },
+      times: 1
+  end
+
   def test_expand
     stub_request(:post, "https://localhost:8089/services/collector").
       to_return(body: '{"text":"Success","code":0}')
