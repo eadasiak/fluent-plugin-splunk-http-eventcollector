@@ -20,7 +20,7 @@ Gem::Specification.new do |gem|
                            "test/plugin/test_out_splunk-http-eventcollector.rb" ]
   gem.require_paths    = ["lib"]
 
-  gem.add_development_dependency "rake"
+  gem.add_development_dependency "rake", '~> 0'
   gem.add_development_dependency "test-unit", '~> 3.1'
   gem.add_development_dependency "webmock", '~> 2.3', '>= 2.3.2'
   gem.add_runtime_dependency "fluentd", '~> 0.12', '~> 0.12.12'
